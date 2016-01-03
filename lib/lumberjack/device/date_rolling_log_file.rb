@@ -41,7 +41,7 @@ module Lumberjack
           true
         elsif @roll_period == :weekly && date.cweek != @file_date.cweek
           true
-        elsif @roll_period == :monthly && date.month != @file_date.month
+        elsif @roll_period == :monthly && date.month > @file_date.month
           true
         else
           false

@@ -45,6 +45,7 @@ describe Lumberjack::Device::DateRollingLogFile do
     File.read("#{log_file}.#{today.strftime('week-of-%Y-%m-%d')}").should == "test week one#{Lumberjack::LINE_SEPARATOR}"
     File.read(log_file).should == "test week two#{Lumberjack::LINE_SEPARATOR}"
   end
+    
 
   it "should roll the file monthly" do
     today = Date.today
@@ -63,4 +64,22 @@ describe Lumberjack::Device::DateRollingLogFile do
     File.read(log_file).should == "test month two#{Lumberjack::LINE_SEPARATOR}"
   end
 
+  it "should roll the file monthly in December" do
+    now = Time.new(2002, 12, 13)
+    today = now.to_date
+    Time.stub(:now => now)
+    Date.stub(:today => today)
+    log_file = File.join(tmp_dir, "dec#{rand(1000000000)}.log")
+    device = Lumberjack::Device::DateRollingLogFile.new(log_file, :roll => :monthly, :template => ":message")
+    logger = Lumberjack::Logger.new(device, :buffer_size => 2)
+    logger.error("test month one")
+    logger.flush
+    Time.stub(:now => now + (31 * one_day))
+    Date.stub(:today => today + 31)   
+    logger.error("test month two")
+    logger.close
+    
+    File.read("#{log_file}.#{today.strftime('%Y-%m')}").should == "test month one#{Lumberjack::LINE_SEPARATOR}"
+    File.read(log_file).should == "test month two#{Lumberjack::LINE_SEPARATOR}"
+  end
 end
